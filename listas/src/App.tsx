@@ -1,16 +1,6 @@
 import * as React from 'react';
-// import axios, { AxiosPromise } from 'axios';
 import axios from 'axios';
 import Lista from '../src/Componentes/Listas/List'
-// import { throttle } from 'throttle-debounce';
-// import {Route , BrowserRouter} from 'react-router-dom';
-// import Welcome from '../src/WelcomP';
-// interface postData{
-//   userID: number;
-//   id: number;
-//   title: string;
-//   body: string
-// }
 
 
 
@@ -21,58 +11,75 @@ class Blog extends React.Component {
       scrolling:false,
       scrollY: 0,
       windowHeight: 0,
-      // maxPosts :4,
-      // maxPages :30,
-      // currentPage:1,
+      pgNum :0,
+      winNum :10,
+      pgCurrent:1,
     }
 
     componentDidMount () {
       window.addEventListener('scroll', this.handleScroll)
-      this.fetchData()
+      this.fetchData(this.state.pgNum + 1)
     }
   
     componentWillUnmount () {
       window.removeEventListener('scroll', this.handleScroll)
     }
+
+    backTop() {
+      window.scrollTo(0, 0)
+    }
   
   
     handleScroll = () => {
-      
       this.setState({ scrollY: window.scrollY , windowHeight: window.innerHeight}, () => {
+        console.log(this.state.windowHeight)
         if(document.documentElement !== null) {
           if(window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight){
-            console.log('srcoll');
-            this.fetchData();
+            this.setState({pgNum: this.state.pgNum + 1})
+            this.fetchData(this.state.pgNum + 1); 
+            this.backTop();
           }    
         }
       }) 
     }
 
-    fetchData () {
-      const url = ('https://jsonplaceholder.typicode.com/posts')
-      axios.get(url)
+    fetchData (pg: number) {
+      console.log('fui chamado'+ pg + 'vezes');
+      const token1 =('Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6NTF9LCJpYXQiOjE1NDQwN');
+      const token2 =('DY0OTksImV4cCI6MTU0NDA1MDA5OX0.gcDEpKeIU-FYFKWZMUdWJJ7VahnUSEjmOwaoA8kMv-0');
+      const token3 = (token1 + token2);
+      const urlpiece = ('https://tq-template-server-sample.herokuapp.com/users?pagination={"page": ')
+      const url =  (urlpiece + pg +' ,' + ' "window": ' + this.state.winNum +'}')
+      axios.get(url,{headers:{Authorization:token3}})
       .then( response => {
-        const data = response.data;
+        const data = response.data.data;
+        console.log(response);
         const upData = data.map((post:any) => {
           return data
           });
-          this.setState({data: upData}); 
+          this.setState({data: upData});
       }).catch(error => {
-          this.setState({error: true});
+          alert(error)
         });
     } 
 
-
-
+    /* Token de autorização:
+    
+    
+    */
      render () {
+       console.log(this.state.pgNum)
       let infos = null;
+      let i = -1;
       if (!this.state.errors) {
           infos = this.state.data.map((data:any) => {
+            /*for(let i = 0;i < this.state.winNum;i = i+1)*/
+            do{i = i + 1;
                 return <Lista 
-                    title={data.user} 
-                    author={data.userrole} key={data.user} />;
-    
-            });
+                    title={data[i].name} 
+                    author={data[i].role} key={data[i].id} />;
+            }while(i < this.state.winNum);
+          });
         }
        
 

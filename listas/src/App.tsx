@@ -63,17 +63,12 @@ class Blog extends React.Component {
         });
     } 
 
-    /* Token de autorização:
-    
-    
-    */
      render () {
        console.log(this.state.pgNum)
       let infos = null;
       let i = -1;
       if (!this.state.errors) {
           infos = this.state.data.map((data:any) => {
-            /*for(let i = 0;i < this.state.winNum;i = i+1)*/
             do{i = i + 1;
                 return <Lista 
                     title={data[i].name} 
@@ -86,7 +81,6 @@ class Blog extends React.Component {
         return (
           <div onScroll = {this.handleScroll}>
           <section className="Posts">
-          Hello world
           {infos}
           </section>
           </div>

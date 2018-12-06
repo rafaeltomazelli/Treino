@@ -14,6 +14,34 @@ class Blog extends React.Component {
       pgNum :0,
       winNum :10,
       pgCurrent:1,
+      login:false,
+      token:'',
+    }
+
+    async doLogin() {
+      const myInterceptor = axios.interceptors.request.use(config =>{
+        return config});
+      axios.interceptors.request.eject(myInterceptor);
+      const submission = {
+        email:"admin@taqtile.com",
+	      password: "1111",
+        rememberMe: false
+      };
+      const url = 'https://tq-template-server-sample.herokuapp.com/authenticate';
+      try {
+        const response:any = await axios.post(url, submission);
+        if (response.data === null) {
+          alert('erro');
+        } else {
+          this.setState({login: true, token:response.data.data.token});
+          this.fetchData(this.state.pgNum);
+        }
+      } catch (e) {
+          if (e.response !== undefined && e.response.data !== undefined) {
+            alert(e.response.data.errors['0'].message);
+          }
+        }
+        
     }
 
     componentDidMount () {
@@ -32,7 +60,6 @@ class Blog extends React.Component {
   
     handleScroll = () => {
       this.setState({ scrollY: window.scrollY , windowHeight: window.innerHeight}, () => {
-        console.log(this.state.windowHeight)
         if(document.documentElement !== null) {
           if(window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight){
             this.setState({pgNum: this.state.pgNum + 1})
@@ -44,27 +71,27 @@ class Blog extends React.Component {
     }
 
     fetchData (pg: number) {
-      console.log('fui chamado'+ pg + 'vezes');
-      const token1 =('Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InVzZXJJZCI6NTF9LCJpYXQiOjE1NDQwN');
-      const token2 =('DY0OTksImV4cCI6MTU0NDA1MDA5OX0.gcDEpKeIU-FYFKWZMUdWJJ7VahnUSEjmOwaoA8kMv-0');
-      const token3 = (token1 + token2);
-      const urlpiece = ('https://tq-template-server-sample.herokuapp.com/users?pagination={"page": ')
-      const url =  (urlpiece + pg +' ,' + ' "window": ' + this.state.winNum +'}')
-      axios.get(url,{headers:{Authorization:token3}})
-      .then( response => {
-        const data = response.data.data;
-        console.log(response);
-        const upData = data.map((post:any) => {
-          return data
-          });
+      if (this.state.login == true){
+        const urlpiece = ('https://tq-template-server-sample.herokuapp.com/users?pagination={"page": ')
+        const url =  (urlpiece + pg +' ,' + ' "window": ' + this.state.winNum +'}')
+        axios.get(url,{headers:{Authorization:this.state.token}})
+        .then( response => {
+            const data = response.data.data;
+            const upData = data.map((post:any) => {
+              return data
+            });
           this.setState({data: upData});
-      }).catch(error => {
+        })
+        .catch(error => {
           alert(error)
         });
+      }
+      else{
+        this.doLogin()
+        }
     } 
 
      render () {
-       console.log(this.state.pgNum)
       let infos = null;
       let i = -1;
       if (!this.state.errors) {
